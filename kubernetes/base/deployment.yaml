@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: saas-provider-backend
+  name: saas-provider-backend-deployment
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: saas-provider-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: saas-provider-backend
+    spec:
+      containers:
+      - name: saas-provider-backend
+        image: REPO/IMAGE:TAG
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: provider-backend
+              key: GITHUB_TOKEN
+        - name: GITHUB_USER
+          valueFrom:
+            secretKeyRef:
+              name: provider-backend
+              key: GITHUB_USER
+        - name: GITHUB_TEMPLATED_REPO
+          valueFrom:
+            secretKeyRef:
+              name: provider-backend
+              key: GITHUB_TEMPLATED_REPO
+        volumeMounts:
+          - name: api-data
+            mountPath: /data
+        ports:
+          - containerPort: 8080
+            hostPort: 8080
+      volumes:
+      - name: api-data
+        persistentVolumeClaim:
+          claimName: provider-backend-data
